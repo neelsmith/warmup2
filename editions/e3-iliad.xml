@@ -21,8 +21,9 @@
 		<body>
 			
 			<div n="4">
-				
-				<l n="1">...</l>
+				<l n="title">ἀρχὴ τῆς δέλτα ὁμήρου ἰλιάδος⁑</l>
+				<l n="1">LINE 1 GOES HERE</l>
+				<l n="2">LINE 2</l>
             </div>
         </body>
     </text>
