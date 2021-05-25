@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-model  href="https://vault.tei-c.org/P5/current/xml/tei/custom/schema/relaxng/tei_all.rng" schematypens="http://relaxng.org/ns/structure/1.0" type="application/xml"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:tei="http://www.tei-c.org/ns/1.0">
+	<teiHeader>
+		<fileDesc>
+			<titleStmt>
+				<title>Iliad 3</title>
+				<editor>Sophie Cassarino</editor>
+				<editor> Anne-Catherine Schaaf</editor>
+			</titleStmt>
+			<publicationStmt>
+				<p>Licensed under the Creative Commons, Non-Commercial, Attribution, Share-alike
+					license: http://creativecommons.org/licenses/by-nc-sa/2.0/</p>
+			</publicationStmt>
+			<sourceDesc>
+				<p>Edited directly from digital images.</p>
+			</sourceDesc>
+		</fileDesc>
+	</teiHeader>
+	<text>
+		<body>
+			
+			<div n="3">
+				<head n="title">ἀρχὴ τῆς <title>γάμμα</title> <persName n="urn:cite2:hmt:pers.v1:pers17">ὁμήρον</persName> <choice><abbr>ῤαψω</abbr><expan>ῥαψωδίας</expan></choice></head>
+				<l n="1">αὐτὰρ ἐπεὶ κόσμηθεν ἅμ' ἡγεμόνεσσιν ἕκαστοι,</l>
+            </div>
+        </body>
+    </text>
+</TEI>

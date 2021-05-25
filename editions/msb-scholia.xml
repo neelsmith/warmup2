@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model  href="https://vault.tei-c.org/P5/current/xml/tei/custom/schema/relaxng/tei_all.rng" schematypens="http://relaxng.org/ns/structure/1.0" type="application/xml"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Scholia to Venetus B</title>
+        <editor>Libby Hodgman</editor>
+        <editor>Sophia Sarro</editor>
+        <editor>Stephen Pittman</editor>
+        <editor>Alec Levesque</editor>
+      </titleStmt>
+      <publicationStmt>
+        <p>Unpublished</p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Transcribed from Venetus B MS</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+      <!-- Scholia to Iliad 5 -->
+    <group n="5">
+      <text n="msB">
+        <body>
+
+          <div n="FOLIO_1" type="scholion">
+              <div n="lemma">
+                  <p><num value="9">θ</num></p>
+              </div>
+              <div n="ref">
+                  <p>urn:cts:greekLit:tlg0012.tlg001.msB:3.1</p>
+              </div>
+              <div n="comment">
+                  <p>πῶς ἐπὶ δύο στρατιωτῶν τὸ ἕκαστοι ἔταξεν: ἢ ὅτι κατὰ ἔθνη καὶ φυλὰς διεκοσμήθησαν: ἢ αντὶ τοῦ ἑκάτεροι τρὡες τὲ καὶ ἓλληνες. ὡς τὸ δενδίλλων ἐς ἕκαστον: δὺο γὰρ ὁι πρέσβης ἐστὶ δὲ ἀττικόν⁑</p>
+              </div>
+          </div>
+
+        </body>
+    </text>
+</group>
+</text>
+</TEI>
