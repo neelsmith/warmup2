@@ -19,7 +19,21 @@ begin
 	import Pkg
 	Pkg.activate(".")
 	Pkg.instantiate()
-	
+	#=
+	Pkg.add("PlutoUI")
+	Pkg.add("CitableText")
+	Pkg.add("CitableObject")
+	Pkg.add("CitableImage")
+	Pkg.add("CitableTeiReaders")
+	Pkg.add("CSV")
+	Pkg.add("DataFrames")
+	Pkg.add("EditionBuilders")
+	Pkg.add("EditorsRepo")
+	Pkg.add("HTTP")
+	Pkg.add("Markdown")
+	Pkg.add("Orthography")
+	Pkg.add("PolytonicGreek")
+	=#
 
 	using PlutoUI
 	using CitableText
@@ -31,7 +45,6 @@ begin
 	using EditionBuilders
 	using EditorsRepo
 	using HTTP
-	using Lycian
 	using Markdown
 	using Orthography
 	using PolytonicGreek
@@ -138,6 +151,15 @@ md"""
 
 """
 
+
+# ╔═╡ d323bb6d-b972-40a3-b561-47fda0c2601c
+md"># START DEBUG"
+
+# ╔═╡ 46f843f5-8f98-4145-877c-aa4bf7e39f99
+
+
+# ╔═╡ a1283489-ad23-4da5-a6aa-0fa53e379b37
+md"># END DEBUG"
 
 # ╔═╡ 70f42154-7900-11eb-325d-9b20517cb744
 md"""
@@ -502,6 +524,9 @@ begin
 	end
 end
 
+# ╔═╡ 9c867c3e-a0d5-41ab-9aa7-c3d040f3dc2f
+xsurf = surfaceDse(Cite2Urn(surface), editorsrepo())
+
 # ╔═╡ b4a23c4c-78f4-11eb-20d3-71eac58097c2
 # Display for visual validation of DSE indexing
 begin
@@ -565,6 +590,15 @@ function tokenizeRow(row, editorsrepo)
 	end
 end
 
+# ╔═╡ cdf1889d-019e-4d0c-9a5f-eb6b1c5c8efa
+begin
+	xhtmlout = []
+	for r in eachrow(xsurf)
+					push!(xhtmlout, tokenizeRow(r, editorsrepo()))
+	end
+	xhtmlout
+end
+
 # ╔═╡ 7a11f584-7905-11eb-0ea6-1b8543a4e471
 begin
 	if isempty(surface)
@@ -584,7 +618,7 @@ begin
 end
 
 # ╔═╡ Cell order:
-# ╟─d859973a-78f0-11eb-05a4-13dba1f0cb9e
+# ╠═d859973a-78f0-11eb-05a4-13dba1f0cb9e
 # ╟─493a315c-78f2-11eb-08e1-137d9a802802
 # ╟─4aacb152-79b2-11eb-349a-cfe86f526399
 # ╟─5495ea1c-7b56-11eb-39ed-d1078b0808b0
@@ -598,9 +632,14 @@ end
 # ╟─055b4a92-78f8-11eb-3b27-478beed207d2
 # ╟─7c715a3c-78f7-11eb-2be0-a71beeed0f3e
 # ╟─b4ab331a-78f6-11eb-33f9-c3fde8bed5d1
+# ╟─d323bb6d-b972-40a3-b561-47fda0c2601c
+# ╟─9c867c3e-a0d5-41ab-9aa7-c3d040f3dc2f
+# ╠═cdf1889d-019e-4d0c-9a5f-eb6b1c5c8efa
+# ╠═46f843f5-8f98-4145-877c-aa4bf7e39f99
+# ╟─a1283489-ad23-4da5-a6aa-0fa53e379b37
 # ╟─b4a23c4c-78f4-11eb-20d3-71eac58097c2
 # ╟─70f42154-7900-11eb-325d-9b20517cb744
-# ╟─7a11f584-7905-11eb-0ea6-1b8543a4e471
+# ╠═7a11f584-7905-11eb-0ea6-1b8543a4e471
 # ╟─6f96dc0c-78f6-11eb-2894-f7c474078043
 # ╟─509c782a-79b4-11eb-0801-a1d0c9b4ffb3
 # ╟─283df9ae-7904-11eb-1b77-b74be19a859c
@@ -616,7 +655,7 @@ end
 # ╟─6db097fc-78f1-11eb-0713-59bf9132af2e
 # ╟─7f130fb6-78f1-11eb-3143-a7208d3a9559
 # ╟─e45a445c-78f1-11eb-3ef5-81b1b7adec63
-# ╠═1829efee-78f2-11eb-06bd-ddad8fb26622
+# ╟─1829efee-78f2-11eb-06bd-ddad8fb26622
 # ╟─85119632-7903-11eb-3291-078d8c56087c
 # ╟─5c472d86-78f2-11eb-2ead-5196f07a5869
 # ╟─81656522-7903-11eb-2ed7-53a05f05ebd6
