@@ -1,4 +1,4 @@
-# warmup 2: edit the opening line of *Iliad* 4
+# warmup 2: edit the opening line of *Iliad* 4 in the Upsilon 1.1 manuscript
 
 Editing assignment: 
 
