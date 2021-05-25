@@ -19,12 +19,14 @@
     </fileDesc>
   </teiHeader>
   <text>
-      <!-- Scholia to Iliad 5 -->
-    <group n="5">
+  <
+    <!-- Scholia to Iliad 3 -->
+    <group n="3">
+    
       <text n="msB">
         <body>
 
-          <div n="FOLIO_1" type="scholion">
+          <div n="40r_1" type="scholion">
               <div n="lemma">
                   <p><num value="9">θ</num></p>
               </div>
@@ -38,6 +40,6 @@
 
         </body>
     </text>
-</group>
+  </group>
 </text>
 </TEI>
