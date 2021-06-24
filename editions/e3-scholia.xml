@@ -4,7 +4,7 @@
   <teiHeader>
     <fileDesc>
       <titleStmt>
-        <title>Scholia to Venetus B</title>
+        <title>Scholia to Upsilon 1.1</title>
         <editor>Libby Hodgman</editor>
         <editor>Sophia Sarro</editor>
         <editor>Stephen Pittman</editor>
@@ -14,7 +14,7 @@
         <p>Unpublished</p>
       </publicationStmt>
       <sourceDesc>
-        <p>Transcribed from Venetus B MS</p>
+        <p>Transcribed from Upsilon 1.1 MS</p>
       </sourceDesc>
     </fileDesc>
   </teiHeader>
@@ -28,7 +28,7 @@
                   <p><num value="9">θ</num></p>
               </div>
               <div n="ref">
-                  <p>urn:cts:greekLit:tlg0012.tlg001.msB:3.1</p>
+                  <p>urn:cts:greekLit:tlg0012.tlg001.e3:3.1</p>
               </div>
               <div n="comment">
                   <p>πῶς ἐπὶ δύο στρατιωτῶν τὸ ἕκαστοι ἔταξεν: ἢ ὅτι κατὰ ἔθνη καὶ φυλὰς διεκοσμήθησαν: ἢ αντὶ τοῦ ἑκάτεροι τρὡες τὲ καὶ ἓλληνες. ὡς τὸ δενδίλλων ἐς ἕκαστον: δὺο γὰρ ὁι πρέσβης ἐστὶ δὲ ἀττικόν⁑</p>
