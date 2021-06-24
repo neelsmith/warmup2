@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.14.6
+# v0.14.8
 
 using Markdown
 using InteractiveUtils
@@ -17,11 +17,14 @@ end
 begin
 	import Pkg
 	Pkg.activate(".")
-	Pkg.instantiate()	
+	Pkg.update()	
+	Pkg.instantiate()
 	using PlutoUI
 	using CitableText
+	using CitableCorpus
 	using CitableObject
 	using CitableImage
+	using CitablePhysicalText
 	using CitableTeiReaders
 	using CSV
 	using DataFrames
@@ -31,7 +34,9 @@ begin
 	#using Lycian
 	using Markdown
 	using Orthography
+	using ManuscriptOrthography
 	using PolytonicGreek
+	using Unicode
 	Pkg.status()
 end
 
@@ -44,8 +49,10 @@ begin
 	loadem
 	nbversion = Pkg.TOML.parse(read("Project.toml", String))["version"]
 	md"""## Validating notebook: version *$(nbversion)*
+	
+Problems, suggestions?  Please file an issue in the MID  [`validatormodel` repository](https://github.com/HCMID/validatormodel/issues).
 
-References for editors:  see the [2021 summer experience reference sheet](https://homermultitext.github.io/hmt-se2021/references/)
+References for HMT editors:  see the [2021 summer experience reference sheet](https://homermultitext.github.io/hmt-se2021/references/)
 	
 	
 	
@@ -165,7 +172,7 @@ function catalogcheck(editorsrepo::EditingRepository)
 		
 		notondisk = citedonly(editorsrepo, cites)
 		if ! isempty(notondisk)
-			nofilelist = "<p>Configured files not found on disk: </p><ul>" * join(nofiletems, "\n") * "</ul>"
+			nofilelist = "<p>Configured files not found on disk: </p><ul>" * join(fileitems , "\n") * "</ul>"
 			hdr = "<div class='danger'><h1>🧨🧨 Configuration error 🧨🧨 </h1>" 
 			tail = "</div>"
 			nofilehtml = join([hdr, nofilelist, tail],"\n")
@@ -190,7 +197,9 @@ end
 # Wrap tokens with invalid orthography in HTML tag
 function formatToken(ortho, s)
 	
-	if validstring(ortho, s)
+	if isempty(strip(s))
+		s
+	elseif validstring(ortho, s)
 			s
 	else
 		"""<span class='invalid'>$(s)</span>"""
@@ -224,10 +233,14 @@ css = html"""
 	color: red;
 	}
 
- .invalid {
+ .invalidtoken {
 	text-decoration-line: underline;
   	text-decoration-style: wavy;
   	text-decoration-color: red;
+}
+ .invalid {
+	color: red;
+	border: solid;
 }
  .center {
 text-align: center;
@@ -267,56 +280,6 @@ text-align: center;
 </style>
 """
 
-# ╔═╡ 987266ac-26b4-49b5-82ab-9719a63f6a3d
-md"> Texts in the repository"
-
-# ╔═╡ a771c143-01ca-45f8-a628-eaa66cb704a7
-# True if last component of CTS URN passage is "ref".
-# We use this to exclude elements with this identifier, 
-# like HMT scholia
-function isref(urn::CtsUrn)::Bool
-    # True if last part of 
-    passageparts(urn)[end] == "ref"
-end
-
-# ╔═╡ 32614e8a-6a69-48c3-ac02-2a6047ae711a
-# Collect diplomatic text for a text passage identified by URN.
-# The URN should either match a citable node, or be a containing node
-# for one or more citable nodes.  Ranges URNs are not supported.
-function diplnode(urn, repo)
-	diplomaticpassages = repo |> EditorsRepo.diplpassages
-	generalized = dropversion(urn)
-	filtered = filter(cn -> urncontains(generalized, dropversion(cn.urn)), 		diplomaticpassages)
-    dropref = filter(cn -> ! isref(cn.urn), filtered)
-    
-	if length(dropref) > 0
-        content = collect(map(n -> n.text, dropref))
-        join(content, "\n")
-	else 
-		""
-	end
-end
-
-# ╔═╡ 8bf92039-8779-4fab-880b-f2ef58746103
-# Collect diplomatic text for a text passage identified by URN.
-# The URN should either match a citable node, or be a containing node
-# for one or more citable nodes.  Ranges URNs are not supported.
-function normednode(urn, repo)
-	normalizedpassages = repo |> EditorsRepo.normedpassages
-    generalized = dropversion(urn)
-    filtered = filter(cn -> urncontains(generalized, dropversion(cn.urn)), normalizedpassages)
-	#filtered = filter(cn -> generalized == dropversion(urn), normalizedpassages)
-    dropref = filter(cn -> ! isref(cn.urn), filtered)
-    
-	if length(dropref) > 0
-        content = collect(map(n -> n.text, dropref))
-        join(content, "\n")
-		#filtered[1].text
-	else 
-		""
-	end
-end
-
 # ╔═╡ ec0f3c61-cf3b-4e4c-8419-176626a0888c
 md"> Repository and image services"
 
@@ -326,7 +289,7 @@ md"> Repository and image services"
 # we can just use the parent directory (dirname() in julia) for the
 # root directory.
 function editorsrepo() 
-    EditingRepository( dirname(pwd()), "editions", "dse", "config")
+    repository(dirname(pwd()))
 end
 
 # ╔═╡ 35255eb9-1f54-4f9d-8c58-2d450e09dff9
@@ -341,6 +304,41 @@ md"""###  Choose a surface to verify
 $(@bind surface Select(surfacemenu(editorsrepo())))
 """
 
+# ╔═╡ 3cb683e2-5350-4262-b693-0cddee340254
+# Compose HTML to display compliance with configured orthography
+function orthography()
+	if isempty(surface)
+		md""
+	else
+	
+		textconfig = citation_df(editorsrepo())
+		catalog = textcatalog_df(editorsrepo())
+		sdse = EditorsRepo.surfaceDse(editorsrepo(), Cite2Urn(surface))
+		
+		htmlrows = []
+		for row in eachrow(sdse)
+			tidy = EditorsRepo.baseurn(row.passage)
+			ortho = orthographyforurn(textconfig, tidy)
+			title = worktitle(catalog, row.passage)
+			
+			#chunks = normednodetext(editorsrepo(), row.passage) |> split
+			chunks = graphemes(normednodetext(editorsrepo(), row.passage)) |> collect
+			html = []
+			for chunk in chunks
+				push!(html, formatToken(ortho, chunk))
+			end
+			
+			psg = passagecomponent(tidy)
+			htmlrow =  string("<p><i>$title</>, <b>$psg</b> ", join(html), "</p>")
+			push!(htmlrows,htmlrow)
+		end
+		HTML(join(htmlrows,"\n"))
+	end
+end
+
+# ╔═╡ 3b04a423-6d0e-4221-8540-ad457d0bb65e
+orthography()
+
 # ╔═╡ 080b744e-8f14-406d-bdd2-fbcd3c1ec753
 # Base URL for an ImageCitationTool
 function ict()
@@ -354,62 +352,6 @@ function iiifsvc()
 	"/project/homer/pyramidal/deepzoom")
 end
 
-# ╔═╡ 59fbd3de-ea0e-4b96-800c-d5d8a7272922
-# Compose markdown for one row of display interleaving citable
-# text passage and indexed image.
-function mdForDseRow(row::DataFrameRow)
-	citation = "**" * passagecomponent(row.passage)  * "** "
-
-	
-	txt = diplnode(row.passage, editorsrepo())
-	caption = passagecomponent(row.passage)
-	
-	img = linkedMarkdownImage(ict(), row.image, iiifsvc(); ht=w, caption=caption)
-	
-	#urn
-	record = """$(citation) $(txt)
-
-$(img)
-
----
-"""
-	record
-end
-
-# ╔═╡ a5ee0d67-60d3-42eb-b551-4463e7c50f2c
-md"> DSE indexing"
-
-# ╔═╡ 476c9ae2-0dd7-4603-b529-17c229d83f7e
-# Find DSE records for surface currently selected in popup menu.
-function surfaceDse(surfurn, repo)
-    alldse = dse_df(editorsrepo())
-	filter(row -> row.surface == surfurn, alldse)
-end
-
-# ╔═╡ 73839e47-8199-4755-8d55-362185907c45
-# Display for visual validation of DSE indexing
-begin
-
-	if surface == ""
-		md""
-	else
-		surfDse = surfaceDse(Cite2Urn(surface), editorsrepo())
-		cellout = []
-		
-		try
-			for r in eachrow(surfDse)
-				push!(cellout, mdForDseRow(r))
-			end
-
-		catch e
-			html"<p class='danger'>Problem with XML edition: see message below</p>"
-		end
-		Markdown.parse(join(cellout,"\n"))				
-		
-	end
-
-end
-
 # ╔═╡ 71d7a180-5742-415c-9013-d3d1c0ca920c
 
 # Compose markdown for thumbnail images linked to ICT with overlay of all
@@ -419,7 +361,7 @@ function completenessView(urn, repo)
 	# Group images with ROI into a dictionary keyed by image
 	# WITHOUT RoI.
 	grouped = Dict()
-	for row in eachrow(surfaceDse(urn, repo))
+	for row in eachrow(surfaceDse(repo, urn))
 		trimmed = CitableObject.dropsubref(row.image)
 		if haskey(grouped, trimmed)
 			push!(grouped[trimmed], row.image)
@@ -450,66 +392,57 @@ begin
 	end
 end
 
-# ╔═╡ 9913000f-295a-41e3-bdfa-003774d3f574
-# Find URN for a single node from DSE record, which could
-# include a range with subrefs within a single node.
-function baseurn(urn::CtsUrn)
-	trimmed = CitableText.dropsubref(urn)
-	if CitableText.isrange(trimmed)
-		psg = CitableText.rangebegin(trimmed)
-		CitableText.addpassage(urn,psg)
-	else
-		urn
-	end
+# ╔═╡ 59fbd3de-ea0e-4b96-800c-d5d8a7272922
+# Compose markdown for one row of display interleaving citable
+# text passage and indexed image.
+function accuracyView(row::DataFrameRow)
+	textcatalog = textcatalog_df(editorsrepo())
+    title 	= worktitle(textcatalog, row.passage)
+	citation = string("*", title, "*, **" * passagecomponent(row.passage)  * "** ")
+
+	
+	txt = diplnodetext(editorsrepo(), row.passage, )
+	caption = passagecomponent(row.passage)
+	
+	img = linkedMarkdownImage(ict(), row.image, iiifsvc(); ht=w, caption=caption)
+	
+	#urn
+	record = """$(citation) $(txt)
+
+$(img)
+
+---
+"""
+	record
 end
 
-# ╔═╡ f7b6b1ce-eb2b-456f-8102-2d8fba838382
-# Compose an HTML string for a row of tokens
-function tokenizeRow(row, editorsrepo)
-    textconfig = citation_df(editorsrepo)
-
-
-	reduced = baseurn(row.passage)
-	citation = "<b>" * passagecomponent(reduced)  * "</b> "
-	ortho = orthographyforurn(textconfig, reduced)
-	
-	if ortho === nothing
-		"<p class='warn'>⚠️  $(citation). No text configured</p>"
-	else
-	
-		txt = normednode(reduced, editorsrepo)
-		
-		tokens = ortho.tokenizer(txt)
-		highlighted = map(t -> formatToken(ortho, t.text), tokens)
-		html = join(highlighted, " ")
-		
-		#"<p>$(citation) $(html)</p>"
-		"<p><b>$(reduced.urn)</b> $(html)</p>"
-	
-	end
-end
-
-# ╔═╡ 4f4c5fd2-5219-4dc1-bdb2-9e48b3857966
+# ╔═╡ 73839e47-8199-4755-8d55-362185907c45
+# Display for visual validation of DSE indexing
 begin
-	if isempty(surface)
+
+	if surface == ""
 		md""
 	else
-		sdse = surfaceDse(Cite2Urn(surface), editorsrepo())
-		htmlout = []
-		try 
-			for r in eachrow(sdse)
-				push!(htmlout, tokenizeRow(r, editorsrepo()))
+		surfDse = surfaceDse(editorsrepo(), Cite2Urn(surface) )
+		cellout = []
+		
+		try
+			for r in eachrow(surfDse)
+				push!(cellout, accuracyView(r))
 			end
-		catch  e
-			md"Error. $(e)"
+
+		catch e
+			html"<p class='danger'>Problem with XML edition: see message below</p>"
 		end
-		HTML(join(htmlout,"\n"))
+		Markdown.parse(join(cellout,"\n"))				
+		
 	end
+
 end
 
 # ╔═╡ Cell order:
-# ╟─8cd70daf-566d-423d-931c-e5021ad2778a
 # ╟─766e600d-200c-4421-9a21-a8fa0aa6a4a7
+# ╟─8cd70daf-566d-423d-931c-e5021ad2778a
 # ╟─17ebe116-0d7f-4051-a548-1573121a33c9
 # ╟─35255eb9-1f54-4f9d-8c58-2d450e09dff9
 # ╟─617ce64a-d7b1-4f66-8bd0-f7a240a929a7
@@ -522,24 +455,17 @@ end
 # ╟─ad541819-7d4f-4812-8476-8a307c5c1f87
 # ╟─73839e47-8199-4755-8d55-362185907c45
 # ╟─3dd88640-e31f-4400-9c34-2adc2cd4c532
-# ╟─4f4c5fd2-5219-4dc1-bdb2-9e48b3857966
+# ╟─3b04a423-6d0e-4221-8540-ad457d0bb65e
 # ╟─ea1b6e21-7625-4f8f-a345-8e96449c0757
 # ╟─fd401bd7-38e5-44b5-8131-dbe5eb4fe41b
 # ╟─066b9181-9d41-4013-81b2-bcc37878ab68
 # ╟─5cba9a9c-74cc-4363-a1ff-026b7b3999ea
 # ╟─71d7a180-5742-415c-9013-d3d1c0ca920c
 # ╟─59fbd3de-ea0e-4b96-800c-d5d8a7272922
+# ╟─3cb683e2-5350-4262-b693-0cddee340254
 # ╟─1814e3b1-8711-4afd-9987-a41d85fd56d9
-# ╟─f7b6b1ce-eb2b-456f-8102-2d8fba838382
 # ╟─3dd9b96b-8bca-4d5d-98dc-a54e00c75030
-# ╟─987266ac-26b4-49b5-82ab-9719a63f6a3d
-# ╟─32614e8a-6a69-48c3-ac02-2a6047ae711a
-# ╟─8bf92039-8779-4fab-880b-f2ef58746103
-# ╟─a771c143-01ca-45f8-a628-eaa66cb704a7
 # ╟─ec0f3c61-cf3b-4e4c-8419-176626a0888c
 # ╟─43734e4f-2efc-4f12-81ac-bce7bf7ada0a
 # ╟─080b744e-8f14-406d-bdd2-fbcd3c1ec753
 # ╟─806b3733-6c06-4956-8b86-aa096f060ac6
-# ╟─a5ee0d67-60d3-42eb-b551-4463e7c50f2c
-# ╟─476c9ae2-0dd7-4603-b529-17c229d83f7e
-# ╟─9913000f-295a-41e3-bdfa-003774d3f574
